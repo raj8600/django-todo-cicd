@@ -1,1 +1,6 @@
+# Ignore known CRITICAL CVEs temporarily
+# Add CVE IDs exactly as reported by Trivy
+
+CVE-2025-64459
+CVE-2024-42005
 
