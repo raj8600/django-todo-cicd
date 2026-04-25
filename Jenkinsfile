@@ -20,8 +20,8 @@ pipeline {
         stage('Git Clone') {
             steps {
                 cleanWs()
-                git credentialsId: 'github-creds',
-                    url: 'https://github.com/pkedar2/django-todo-cicd',
+                git credentialsId: 'github-token',
+                    url: 'https://github.com/raj8600/django-todo-cicd.git',
                     branch: 'main'
             }
         }
@@ -127,7 +127,7 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-cred',
+                    credentialsId: 'docker-tokan',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
