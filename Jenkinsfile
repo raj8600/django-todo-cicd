@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        SONAR_SCANNER    = tool 'sonar-scanner'
-        DOCKER_IMAGE     = "pranavkedar/django-todo-cicd"
-        DOCKER_TAG       = "${BUILD_NUMBER}"
-        SONAR_PROJECT    = "django-todo-cicd"
+        SONAR_SCANNER = tool 'sonar-scanner'
+        DOCKER_IMAGE  = "prayagraj8600/django-todo-cicd"   // ✅ updated to your DockerHub namespace
+        DOCKER_TAG    = "${BUILD_NUMBER}"
+        SONAR_PROJECT = "django-todo-cicd"
     }
 
     options {
@@ -20,7 +20,7 @@ pipeline {
         stage('Git Clone') {
             steps {
                 cleanWs()
-                git credentialsId: 'github-token',
+                git credentialsId: 'github-creds',
                     url: 'https://github.com/raj8600/django-todo-cicd.git',
                     branch: 'main'
             }
@@ -46,16 +46,18 @@ pipeline {
                             additionalArguments: '''
                                 --scan ./ 
                                 --format XML 
-                                --failOnCVSS 7
+                                --out ./owasp-reports 
+                                --failOnCVSS 7 
+                                --update
                             ''',
                             odcInstallation: 'OWASP-DC'
                         )
                     }
                     post {
                         always {
-                            dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                            archiveArtifacts artifacts: '**/dependency-check-report.*',
-                                fingerprint: true
+                            dependencyCheckPublisher pattern: 'owasp-reports/dependency-check-report.xml'
+                            archiveArtifacts artifacts: 'owasp-reports/**',
+                                              fingerprint: true
                         }
                     }
                 }
@@ -93,7 +95,7 @@ pipeline {
                             echo "LOW      : \$(grep -c 'LOW'      trivy-report.txt || true)"
                             echo "=================================="
 
-                            # Fail only on CRITICAL
+                            # Fail only on CRITICAL (but allow suppression via .trivyignore)
                             trivy image \
                                 --exit-code 1 \
                                 --severity CRITICAL \
@@ -112,7 +114,6 @@ pipeline {
                         }
                     }
                 }
-
             }
         }
 
@@ -127,18 +128,17 @@ pipeline {
         stage('Push to DockerHub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'docker-tokan',
+                    credentialsId: 'dockerhub-cred',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    sh """
-                        echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin
+                    sh '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                    """
+                    '''
                 }
             }
         }
-
     }
 
     post {
