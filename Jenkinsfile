@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SONAR_SCANNER    = tool 'sonar-scanner'
-        DOCKER_IMAGE     = "pranavkedar/django-todo-cicd"
+        DOCKER_IMAGE     = "prayagraj8600/django-todo-cicd"
         DOCKER_TAG       = "${BUILD_NUMBER}"
         SONAR_PROJECT    = "django-todo-cicd"
     }
@@ -21,7 +21,7 @@ pipeline {
             steps {
                 cleanWs()
                 git credentialsId: 'github-creds',
-                    url: 'https://github.com/pkedar2/django-todo-cicd',
+                    url: 'https://github.com/raj8600/django-todo-cicd.git',
                     branch: 'main'
             }
         }
